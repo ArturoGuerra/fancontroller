@@ -28,16 +28,13 @@
 int main() {
   stdio_init_all();
 
-  // while (!tud_cdc_connected())
-  //   sleep_ms(500);
+  while (!tud_cdc_connected())
+    sleep_ms(500);
 
   printf("Pi Pico Fan Controller\n");
 
-  struct Fan fan;
-  fan.pin = FAN_CONTROLLER_PIN;
-
-  fan_controller_init(&fan);
-  fan_monitor_init(FAN_MONITOR_PIN);
+  struct Fan fan = fan_controller_init(FAN_CONTROLLER_PIN);
+  struct fan_monitor_t fan_monitor = fan_monitor_init(FAN_MONITOR_PIN);
   speed_source_init(SPEED_SOURCE_PIN);
 
   // NOTE: The pico_ssd1306 library is C++ so this pointer
@@ -47,7 +44,10 @@ int main() {
 
   printf("Done with setup!\n");
 
-  fan_monitor_start();
+  // printf("Fan Address at main: %p\n", &fan_monitor);
+  // printf("RPM Address at main: %p\n", &(&fan_monitor)->rpm);
+
+  repeating_timer_t timer = fan_monitor_start(&fan_monitor);
 
   int speed, rpm;
   char buffer[20];
@@ -56,7 +56,7 @@ int main() {
     speed = get_speed();
     set_fan_controller_speed(&fan, speed);
 
-    rpm = get_fan_monitor_rpm();
+    rpm = get_fan_monitor_rpm(fan_monitor);
     printf("Power %d%% RPM: %d\n", speed, rpm);
 
     display->clear();
@@ -75,6 +75,7 @@ int main() {
 
   delete display;
   display = nullptr;
+  fan_monitor_stop(&fan_monitor, &timer);
 
   return 0;
 }
