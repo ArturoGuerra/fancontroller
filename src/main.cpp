@@ -28,8 +28,8 @@
 int main() {
   stdio_init_all();
 
-  while (!tud_cdc_connected())
-    sleep_ms(500);
+  //  while (!tud_cdc_connected())
+  //    sleep_ms(500);
 
   printf("Pi Pico Fan Controller\n");
 
